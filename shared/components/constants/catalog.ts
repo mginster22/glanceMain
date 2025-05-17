@@ -1,0 +1,40 @@
+export const catalog=[
+    {
+        id:1,
+        link:"/phone",
+        name:"Смартфоны",
+        img:"/phonekatalog.png"
+    },
+    {
+        id:2,
+        link:"/nout",
+        name:"Ноутбуки",
+        img:"/noutkatalog.png"
+    },
+    {
+        id:3,
+        link:"/",
+        name:"Компьютеры",
+        img:"/pkkatalog.png"
+    },
+    {
+        id:4,
+        link:"/",
+        name:"Телевизоры",
+        img:"/televizorkatalog.png"
+    },
+    {
+        id:5,
+        link:"/",
+        name:"Планшеты",
+        img:"/planwetkatalog.png"
+    },
+    {
+        id:6,
+        link:"/",
+        name:"Колонки",
+        img:"/kolonkakatalog.png"
+    },
+    
+   
+]

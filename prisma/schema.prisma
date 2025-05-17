@@ -1,0 +1,62 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int        @id @default(autoincrement())
+  name      String
+  email     String     @unique
+  password  String
+  image     String?
+  carts     Cart[]     // Обратная связь с корзинами
+}
+
+model Product {
+  id             Int             @id @default(autoincrement())
+  name           String
+  brand          String
+  model          String
+  memory         String
+  img            String[] // поддерживается PostgreSQL
+  price          Int
+  discount       Int?
+  quantity       Int
+  newModel       Boolean         @default(false)
+  characteristic Characteristic?
+  cartItems      CartItem[] // Связь с товарами в корзинах
+}
+
+model Characteristic {
+  id        Int     @id @default(autoincrement())
+  screen    String
+  cores     String
+  power     String
+  ram       String
+  rom       String
+  camera    String
+  product   Product @relation(fields: [productId], references: [id])
+  productId Int     @unique
+}
+
+model Cart {
+  id        Int        @id @default(autoincrement())
+  token     String     @unique // Уникальный токен для корзины
+  userId    Int?        // Связь с пользователем по ID
+  user      User?       @relation(fields: [userId], references: [id])
+  cartItems CartItem[] // Связь с товарами в корзине
+}
+
+model CartItem {
+  id        Int     @id @default(autoincrement())
+  cartId    Int     // Идентификатор корзины
+  cart      Cart    @relation(fields: [cartId], references: [id]) // Связь с корзиной
+  productId Int     // Идентификатор продукта
+  product   Product @relation(fields: [productId], references: [id]) // Связь с продуктом
+  quantity  Int     @default(1) // Количество товара в корзине
+}
