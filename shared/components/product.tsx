@@ -1,5 +1,5 @@
 "use client";
-import { CircleSmall, Heart } from "lucide-react";
+import { CircleSmall, Heart, Loader, Loader2 } from "lucide-react";
 import React from "react";
 import { Button } from "./ui";
 import { cn } from "./libs";
@@ -21,6 +21,7 @@ export const Product: React.FC<Props> = ({
   productMobileClassCart,
 }) => {
   const { addToCart } = useCartStore((state) => state);
+  const [loading, setLoading] = React.useState(false);
 
   const productInStore = useProductStore((state) =>
     state.products.find((p) => p.id === item.id)
@@ -34,7 +35,6 @@ export const Product: React.FC<Props> = ({
   const handleImageChange = (id: number, index: number) => {
     setCurrentImgIndex((prev) => ({ ...prev, [id]: index }));
   };
-  console.log(item);
 
   return (
     <div
@@ -186,23 +186,30 @@ export const Product: React.FC<Props> = ({
           </button>
         </div>
         <Button
-          text="В корзину"
-          className={cn(
-            "mt-4 max-sm:px-8 max-sm:py-2  mx-auto rounded-xl   max-sm:text-[12px]  max-sm:mt-0 ",
-            productMobileClassCart &&
-              "max-sm:translate-x-[50px] max-sm:translate-y-[-25px] max-sm:px-12 max-sm:py-3"
-          )}
-          onClick={() => {
+          className="..." // стили
+          onClick={async () => {
             if (availableQuantity > 0) {
-              addToCart(item.id, 1);
-
-              toast.success("Товар добавлен в корзину");
+              try {
+                setLoading(true); // ← включаем локальный спиннер
+                await addToCart(item.id, 1);
+                toast.success("Товар добавлен в корзину");
+              } catch {
+                toast.error("Ошибка при добавлении в корзину");
+              } finally {
+                setLoading(false); // ← выключаем локальный спиннер
+              }
             } else {
               toast.error("Товара нет в наличии");
             }
           }}
-          disabled={availableQuantity === 0}
-        />
+          disabled={availableQuantity === 0 || loading}
+        >
+          {loading ? (
+            <Loader2 className="animate-spin w-5 h-5 mx-auto" />
+          ) : (
+            "В корзину"
+          )}
+        </Button>
       </div>
     </div>
   );

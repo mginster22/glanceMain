@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { CartItem } from "@/types/products";
 import {
   getCart,
-  addToCart as appiAddToCart,
+  addToCart as apiAddToCart,
   removeFromCart,
   updateCartItem,
 } from "@/services/cart";
@@ -11,6 +11,8 @@ import { useProductStore } from "./useProduct";
 interface StoreState {
   cart: CartItem[];
   active: boolean;
+  loading: boolean;
+
   fetchCart: () => Promise<void>;
   addToCart: (productId: number, count?: number) => Promise<void>;
   deleteFromCart: (productId: number) => Promise<void>;
@@ -19,21 +21,28 @@ interface StoreState {
   openCart: () => void;
   closeCart: () => void;
 }
+
 export const useCartStore = create<StoreState>()((set, get) => ({
   cart: [],
   active: false,
+  loading: false,
+
   fetchCart: async () => {
+    set({ loading: true });
     try {
       const data = await getCart();
-      set({ cart: data.items });
+      set({ cart: data.items.sort((a, b) => a.productId - b.productId) });
     } catch (error) {
       console.error("Error fetching products:", error);
+    } finally {
+      set({ loading: false });
     }
   },
-  addToCart: async (productId: number, count?: number) => {
-    try {
-      await appiAddToCart(productId, count);
 
+  addToCart: async (productId: number, count?: number) => {
+    set({ loading: true });
+    try {
+      await apiAddToCart(productId, count);
       await get().fetchCart();
 
       const updatedCart = get().cart;
@@ -43,26 +52,23 @@ export const useCartStore = create<StoreState>()((set, get) => ({
       const { products, setProductQuantity } = useProductStore.getState();
       const product = products.find((p) => p.id === productId);
       if (!product) return;
-      const initialQuantity = product.initialQuantity ?? 0;
 
-      const newQuantity = initialQuantity - countInCart;
+      const newQuantity = (product.initialQuantity ?? 0) - countInCart;
       setProductQuantity(productId, newQuantity);
     } catch (error) {
       console.error("Error adding to cart:", error);
+    } finally {
+      set({ loading: false });
     }
   },
 
   deleteFromCart: async (productId: number) => {
+    set({ loading: true });
     try {
-      await removeFromCart(productId); // удаляем на сервере
-
-      // Обновляем корзину
+      await removeFromCart(productId);
       await get().fetchCart();
-
-      // Обновляем продукты (если надо)
       await useProductStore.getState().fetchProducts();
 
-      // После полной загрузки обновленных данных получаем состояние заново
       const updatedCart = get().cart;
       const { products, setProductQuantity } = useProductStore.getState();
 
@@ -74,42 +80,35 @@ export const useCartStore = create<StoreState>()((set, get) => ({
       });
     } catch (error) {
       console.error("Error deleting from cart:", error);
+    } finally {
+      set({ loading: false });
     }
   },
 
-  // Пример для useCartStore (или твоего стора корзины)
   updateCartItem: async (productId: number, newCount: number) => {
+    set({ loading: true });
     try {
-      await updateCartItem(productId, newCount); // вызов API для обновления корзины
-
-      // Получаем свежую корзину с сервера (или локально)
+      await updateCartItem(productId, newCount);
       await get().fetchCart();
 
-      // Получаем обновленное состояние корзины
       const updatedCart = get().cart;
-
-      // Ищем количество товара в корзине для этого productId
       const cartItem = updatedCart.find((item) => item.productId === productId);
       const countInCart = cartItem?.count ?? 0;
 
-      // Получаем продукты из стора продуктов
       const { products, setProductQuantity } = useProductStore.getState();
-
-      // Находим исходное количество товара (initialQuantity)
       const product = products.find((p) => p.id === productId);
       if (!product) {
         console.warn("Product not found in product store:", productId);
         return;
       }
+
       const initialQuantity = product.initialQuantity ?? 0;
-
-      // Вычисляем остаток: изначальное количество минус количество в корзине
       const newQuantity = initialQuantity - countInCart;
-
-      // Обновляем количество в сторе продуктов (оставшийся остаток)
       setProductQuantity(productId, newQuantity);
     } catch (error) {
       console.error("Error updating cart item:", error);
+    } finally {
+      set({ loading: false });
     }
   },
 

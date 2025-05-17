@@ -40,7 +40,7 @@ export const useProductStore = create<StoreState>()((set, get) => ({
         };
       });
 
-      set({ products: productsWithInitial });
+      set({ products: productsWithInitial.sort((a, b) => a.id - b.id) });
     } catch (error) {
       console.error("Error fetching products:", error);
     }

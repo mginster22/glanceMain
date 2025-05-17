@@ -204,7 +204,7 @@ const config = {
     "db": {
       "url": {
         "fromEnvVar": "DATABASE_URL",
-        "value": "postgresql://postgres:postgres@localhost:5432/glancemain"
+        "value": "postgres://neondb_owner:npg_BmMvA2lzuHb5@ep-holy-base-a4xaf8cc-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require"
       }
     }
   },
