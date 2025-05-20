@@ -4,7 +4,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 
 // ======= Заглушка: функция получения userId из запроса (замени под свою аутентификацию) =======
-export async function getUserId(req: Request): Promise<number | null> {
+async function getUserId(req: Request): Promise<number | null> {
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.id) {
