@@ -1,5 +1,5 @@
 "use client";
-import React, { use } from "react";
+import React from "react";
 import { Container } from "./container";
 import { AlignJustify, House, ShoppingCart, UserRound } from "lucide-react";
 import { cn } from "./libs";
@@ -7,33 +7,44 @@ import Link from "next/link";
 import { CartDrawer } from "./ui/cart-drawer";
 import { SearchInput } from "./search-input";
 import { ProfilePopup } from "./profile-popup";
-import { useUserStore } from "@/store/userStore";
 import { RegisterForm } from "./forms/register-form";
 import { useProductStore } from "@/store/useProduct";
 import { useCartStore } from "@/store/useCart";
+import { LoginForm } from "./forms/login-form";
+import { useSession } from "next-auth/react";
 
 interface Props {
   className?: string;
 }
 
-export function Header() {
+export const Header = () => {
   //Вызываем один раз Products
   const { products, fetchProducts } = useProductStore((state) => state);
 
+  const { data: session, status } = useSession();
+  const isLoading = status === "loading";
+  const userName = session?.user?.name;
+  const userEmail = session?.user?.email;
+
   const { cart, active, openCart, fetchCart } = useCartStore((state) => state);
+
   React.useEffect(() => {
     fetchProducts();
-    fetchCart()
-  }, [fetchProducts,fetchCart]);
+  }, []);
 
+  React.useEffect(() => {
+    if (status === "authenticated") {
+      fetchCart();
+    }
+  }, [status, fetchCart]);
 
-  const fullname = useUserStore((state) => state.fullname);
   const [profile, setProfile] = React.useState(false);
 
   const popupRef = React.useRef<HTMLDivElement>(null);
   const iconRef = React.useRef<HTMLDivElement>(null);
 
   const [showRegister, setShowRegister] = React.useState(false);
+  const [showLogin, setShowLogin] = React.useState(false);
 
   React.useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -67,7 +78,7 @@ export function Header() {
             <Link href="/">
               <img src="/logo.png" />
             </Link>
-            <SearchInput  />
+            <SearchInput />
           </div>
           <div className="max-sm:fixed max-sm:justify-center max-sm:bg-gray-100 max-sm:bottom-0 max-sm:w-full max-sm:gap-12 gap-6 items-center flex bg-gray-white  border-gray-200 z-50 py-2">
             <Link href="/" className=" flex flex-col items-center gap-1">
@@ -100,22 +111,24 @@ export function Header() {
                 onClick={() => setProfile((prev) => !prev)}
               >
                 <UserRound />
-                <span className="text-xs">{fullname ?? "Профиль"}</span>
+                <span className="text-xs">{userName ?? "Профиль"}</span>
               </div>
               {profile && (
                 <ProfilePopup
                   onClose={() => setProfile(false)}
                   setShowRegister={setShowRegister}
+                  setShowLogin={setShowLogin}
                   popupRef={popupRef}
                 />
               )}
               {showRegister && (
                 <RegisterForm onClose={() => setShowRegister(false)} />
               )}
+              {showLogin && <LoginForm onClose={() => setShowLogin(false)} />}
             </div>
           </div>
         </Container>
       </div>
     </>
   );
-}
+};

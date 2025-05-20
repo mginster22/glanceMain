@@ -1,49 +1,32 @@
 "use client";
-import { signIn } from "next-auth/react";
 import React, { useState } from "react";
+import { signIn } from 'next-auth/react';
+
 
 interface Props {
   onClose: () => void;
 }
 
-export const RegisterForm: React.FC<Props> = ({ onClose }) => {
+export const LoginForm: React.FC<Props> = ({ onClose }) => {
+  const [email, setEmail] = useState("");
   const [name, setName] = useState("");
-  const [email,setEmail] = useState("");
   const [password, setPassword] = useState("");
 
  const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  try {
-    const res = await fetch('/api/auth/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, email, password }),
-    });
+    e.preventDefault();
 
-    const data = await res.json();
-
-    if (!res.ok) {
-      alert(data.error || 'Ошибка регистрации');
-      return;
-    }
-
-    // После регистрации — сразу логинимся
-    const signInRes = await signIn('credentials', {
+    const res = await signIn('credentials', {
       email,
       password,
       redirect: false,
     });
 
-    if (signInRes?.ok) {
-      onClose();
+    if (res?.ok) {
+     onClose()// редирект на главную или дашборд
     } else {
-      alert('Ошибка входа после регистрации');
+      alert('Ошибка входа');
     }
-  } catch (error) {
-    alert('Ошибка сети или сервера');
-  }
-};
-
+  };
 
   return (
     <div
@@ -55,17 +38,9 @@ export const RegisterForm: React.FC<Props> = ({ onClose }) => {
         onSubmit={handleSubmit}
         className="bg-white p-6 rounded-lg shadow-lg w-80"
       >
-        <h2 className="text-lg font-semibold mb-4">Регистрация</h2>
+        <h2 className="text-lg font-semibold mb-4">Вход</h2>
         <input
-          type="text"
-          placeholder="Полное имя"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="w-full border p-2 rounded mb-2"
-          required
-        />
-        <input
-          type="text"
+          type="email"
           placeholder="Ваш email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
@@ -84,7 +59,7 @@ export const RegisterForm: React.FC<Props> = ({ onClose }) => {
           type="submit"
           className="w-full bg-black text-white py-2 rounded"
         >
-          Зарегистрироваться
+          Войти
         </button>
         <button
           type="button"

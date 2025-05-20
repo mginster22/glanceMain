@@ -5,6 +5,7 @@ import { getCart } from "@/services/cart";
 
 interface StoreState {
   products: ProductItem[];
+  loading: boolean;
   singleProduct: ProductItem | null;
   fetchProducts: () => Promise<void>;
   fetchProductById: (id: number) => Promise<void>;
@@ -19,9 +20,11 @@ interface StoreState {
 }
 export const useProductStore = create<StoreState>()((set, get) => ({
   products: [],
+  loading: false,
   searchTerm: "",
   singleProduct: null,
   fetchProducts: async () => {
+    set({ loading: true });
     try {
       const [productsData, cartData] = await Promise.all([
         getAllProducts(),
@@ -43,14 +46,19 @@ export const useProductStore = create<StoreState>()((set, get) => ({
       set({ products: productsWithInitial.sort((a, b) => a.id - b.id) });
     } catch (error) {
       console.error("Error fetching products:", error);
+    }finally {
+      set({ loading: false });
     }
   },
   fetchProductById: async (id: number) => {
+    set({ loading: true });
     try {
       const product = await getProductById(id);
       set({ singleProduct: product });
     } catch (error) {
       console.error("Error fetching product:", error);
+    }finally {
+      set({ loading: false });
     }
   },
   setSingleProduct: (product) =>

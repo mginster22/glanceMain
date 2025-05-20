@@ -5,6 +5,7 @@ import {
   addToCart as apiAddToCart,
   removeFromCart,
   updateCartItem,
+  clearCart
 } from "@/services/cart";
 import { useProductStore } from "./useProduct";
 
@@ -17,6 +18,7 @@ interface StoreState {
   addToCart: (productId: number, count?: number) => Promise<void>;
   deleteFromCart: (productId: number) => Promise<void>;
   updateCartItem: (productId: number, count: number) => Promise<void>;
+  clearCart:()=>Promise<void>;
 
   openCart: () => void;
   closeCart: () => void;
@@ -78,6 +80,18 @@ export const useCartStore = create<StoreState>()((set, get) => ({
         const newQuantity = (product.initialQuantity ?? 0) - countInCart;
         setProductQuantity(product.id, newQuantity);
       });
+    } catch (error) {
+      console.error("Error deleting from cart:", error);
+    } finally {
+      set({ loading: false });
+    }
+  },
+  clearCart:async()=>{
+    set({ loading: true });
+    try {
+      await clearCart();
+      await get().fetchCart();
+      await useProductStore.getState().fetchProducts();
     } catch (error) {
       console.error("Error deleting from cart:", error);
     } finally {

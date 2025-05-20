@@ -22,6 +22,8 @@ export interface BaseProduct {
 
 export interface ProductItem extends BaseProduct {}
 
+export interface FavoriteItems extends BaseProduct {}
+
 export interface CartItem extends BaseProduct {
   productId: number;
   selectedImg: string;

@@ -4,6 +4,7 @@ import React from "react";
 import { Container, Products, SearchFilters } from "@/shared/components";
 import { Filters, useFilters } from "@/shared/hooks/use-filters";
 import { ProductItem } from "@/types/products";
+import { useProductStore } from "@/store/useProduct";
 
 interface Props {
   initialProducts: ProductItem[];
@@ -25,6 +26,8 @@ export const ProductsList: React.FC<Props> = ({
 }) => {
   const { filters, handleCheckboxChange, handlePriceChange, filteredData } =
     useFilters(initialProducts, filterFn);
+
+    const {loading}=useProductStore(state=>state)
    
   return (
     <div className="min-h-screen flex flex-col pb-20">
@@ -38,7 +41,7 @@ export const ProductsList: React.FC<Props> = ({
           onChange={handleCheckboxChange}
           onPriceChange={handlePriceChange}
         />
-        <Products products={filteredData} productMobileClassCart={true} />
+        <Products products={filteredData} productMobileClassCart={true} isLoading={loading}/>
       </Container>
     </div>
   );

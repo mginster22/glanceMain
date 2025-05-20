@@ -21,7 +21,9 @@ export const Product: React.FC<Props> = ({
   productMobileClassCart,
 }) => {
   const { addToCart } = useCartStore((state) => state);
-  const [loading, setLoading] = React.useState(false);
+  const [loadingCart, setLoadingCart] = React.useState(false);
+
+  const {loading} =useCartStore((state) => state);
 
   const productInStore = useProductStore((state) =>
     state.products.find((p) => p.id === item.id)
@@ -37,6 +39,7 @@ export const Product: React.FC<Props> = ({
   };
 
   return (
+    
     <div
       className={cn(
         " relative flex flex-col gap-4 justify-between mr-2  shadowcustom px-2 py-2 rounded-xl w-[217px] max-sm:w-[150px] max-sm:gap-1 max-sm:justify-start ",
@@ -186,28 +189,29 @@ export const Product: React.FC<Props> = ({
           </button>
         </div>
         <Button
-          className="..." // стили
+          className={cn("")} // стили
           onClick={async () => {
             if (availableQuantity > 0) {
               try {
-                setLoading(true); // ← включаем локальный спиннер
+                setLoadingCart(true); // ← включаем локальный спиннер
                 await addToCart(item.id, 1);
                 toast.success("Товар добавлен в корзину");
               } catch {
                 toast.error("Ошибка при добавлении в корзину");
               } finally {
-                setLoading(false); // ← выключаем локальный спиннер
+                setLoadingCart(false); // ← выключаем локальный спиннер
               }
             } else {
               toast.error("Товара нет в наличии");
             }
           }}
-          disabled={availableQuantity === 0 || loading}
+          disabled={availableQuantity === 0 || loadingCart}
+          productMobileClassCart = {productMobileClassCart}
         >
-          {loading ? (
+          {loadingCart ? (
             <Loader2 className="animate-spin w-5 h-5 mx-auto" />
           ) : (
-            "В корзину"
+            <span className={cn("max-sm:whitespace-nowrap  max-sm:text-[14px]",productMobileClassCart&&"max-sm:text-[12px] max-sm:whitespace-nowrap ")}>В корзину</span>
           )}
         </Button>
       </div>

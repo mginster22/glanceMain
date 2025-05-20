@@ -9,12 +9,16 @@ datasource db {
 }
 
 model User {
-  id        Int        @id @default(autoincrement())
-  name      String
-  email     String     @unique
-  password  String
-  image     String?
-  carts     Cart[]     // Обратная связь с корзинами
+  id             Int        @id @default(autoincrement())
+  name           String
+  email          String     @unique
+  password       String
+  image          String?
+  emailVerified  DateTime?  // 👈 для NextAuth
+  accounts       Account[]  // 👈 связи для авторизации через NextAuth
+  sessions       Session[]  // 👈 связи для сессий NextAuth
+  carts          Cart[]
+  favorites      Favorite[]
 }
 
 model Product {
@@ -23,13 +27,14 @@ model Product {
   brand          String
   model          String
   memory         String
-  img            String[] // поддерживается PostgreSQL
+  img            String[]
   price          Int
   discount       Int?
   quantity       Int
   newModel       Boolean         @default(false)
   characteristic Characteristic?
-  cartItems      CartItem[] // Связь с товарами в корзинах
+  cartItems      CartItem[]
+  favoritedBy    Favorite[]
 }
 
 model Characteristic {
@@ -46,17 +51,64 @@ model Characteristic {
 
 model Cart {
   id        Int        @id @default(autoincrement())
-  token     String     @unique // Уникальный токен для корзины
-  userId    Int?        // Связь с пользователем по ID
-  user      User?       @relation(fields: [userId], references: [id])
-  cartItems CartItem[] // Связь с товарами в корзине
+  token     String?    
+  userId    Int?
+  user      User?      @relation(fields: [userId], references: [id])
+  cartItems CartItem[]
 }
 
 model CartItem {
   id        Int     @id @default(autoincrement())
-  cartId    Int     // Идентификатор корзины
-  cart      Cart    @relation(fields: [cartId], references: [id]) // Связь с корзиной
-  productId Int     // Идентификатор продукта
-  product   Product @relation(fields: [productId], references: [id]) // Связь с продуктом
-  quantity  Int     @default(1) // Количество товара в корзине
+  cartId    Int
+  cart      Cart    @relation(fields: [cartId], references: [id])
+  productId Int
+  product   Product @relation(fields: [productId], references: [id])
+  quantity  Int     @default(1)
+}
+
+model Favorite {
+  id        Int     @id @default(autoincrement())
+  userId    Int
+  user      User    @relation(fields: [userId], references: [id])
+  productId Int
+  product   Product @relation(fields: [productId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([userId, productId])
+}
+
+model Account {
+  id                 Int       @id @default(autoincrement())
+  userId             Int
+  type               String
+  provider           String
+  providerAccountId  String
+  refresh_token      String?
+  access_token       String?
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String?
+  session_state      String?
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           Int      @id @default(autoincrement())
+  sessionToken String   @unique
+  userId       Int
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
 }

@@ -6,21 +6,24 @@ import { Title } from "./ui";
 import { cn } from "./libs";
 import { useProductStore } from "@/store/useProduct";
 
-
 interface Props {
   className?: string;
 }
 
 export const Stock: React.FC<Props> = ({ className }) => {
-  const { products } = useProductStore((state) => state);
- 
+  const { products, loading } = useProductStore((state) => state);
+
   const discountPhone = products.filter((product) => product.discount);
-    
+
   return (
     <div className={cn("relative mt-4", className)}>
       <Container>
         <Title text="Акции" size="md" />
-        <Products useSwiper={true} products={discountPhone} />
+        <Products
+          useSwiper={true}
+          products={discountPhone}
+          isLoading={loading}
+        />
       </Container>
     </div>
   );

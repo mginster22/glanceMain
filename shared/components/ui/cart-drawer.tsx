@@ -3,15 +3,18 @@ import React, { useEffect, useRef } from "react";
 import { cn } from "../libs";
 import { Cart } from "../cart";
 import { useCartStore } from "@/store/useCart";
+import toast from "react-hot-toast";
 
 interface Props {
   className?: string;
 }
 
 export const CartDrawer: React.FC<Props> = ({ className }) => {
-  const { active, closeCart } = useCartStore((state) => state);
+  const { active, closeCart, clearCart,loading } = useCartStore((state) => state);
   const drawerRef = useRef<HTMLDivElement>(null);
 
+    const [loadingAll, setLoadingAll] = React.useState(loading);
+  
   // Закрытие при клике вне корзины
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -46,10 +49,24 @@ export const CartDrawer: React.FC<Props> = ({ className }) => {
         )}
       >
         <div className="flex items-center gap-10">
-          <h2 className="text-xl font-bold mt-4 ml-5">Корзина</h2>
-          <h2   className="text-xl font-bold mt-4 select-none  ml-5">Очистить</h2>
+          <h2 className="text-xl font-bold mt-4 ml-5 cursor-pointer">Корзина</h2>
+          <h2
+            onClick={async () => {
+              try {
+                setLoadingAll(true);
+                await clearCart();
+                setLoadingAll(false);
+                toast.success("Корзина очищена");
+              } catch (error) {
+                console.log(error);
+              }
+            }}
+            className="text-xl font-bold mt-4 select-none  ml-5"
+          >
+            Очистить
+          </h2>
         </div>
-        <Cart />
+        <Cart loadingAll={loadingAll}/>
       </div>
     </div>
   );

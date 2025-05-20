@@ -5,48 +5,55 @@ import { Heart, Loader2, Minus, Plus, Trash2 } from "lucide-react";
 import toast from "react-hot-toast";
 import { useCartStore } from "@/store/useCart";
 import { useProductStore } from "@/store/useProduct";
+import { SkeletonCart } from "./ui/sceleton-cart";
 
 interface Props {
   className?: string;
+  loadingAll: boolean;
 }
 
-export const Cart: React.FC<Props> = ({ className }) => {
+export const Cart: React.FC<Props> = ({ className, loadingAll }) => {
   const { products } = useProductStore((state) => state);
   const { cart, deleteFromCart, updateCartItem } = useCartStore(
     (state) => state
   );
-  const [loading, setLoading] = React.useState(false);
-  const [loadingMap, setLoadingMap] = React.useState<Record<number, boolean>>(
-    {}
-  );
-    const setItemLoading = (productId: number, isLoading: boolean) => {
-    setLoadingMap((prev) => ({ ...prev, [productId]: isLoading }));
+
+  const [loadingAction, setLoadingAction] = React.useState<
+    Record<number, "delete" | "plus" | "minus" | null>
+  >({});
+
+  const setItemAction = (
+    productId: number,
+    action: "delete" | "plus" | "minus" | null
+  ) => {
+    setLoadingAction((prev) => ({
+      ...prev,
+      [productId]: action,
+    }));
   };
 
-
-  const [loadingAction, setLoadingAction] = React.useState<Record<number, "delete" | "plus" | "minus" | null>>({});
-  
-const setItemAction = (productId: number, action: "delete" | "plus" | "minus" | null) => {
-  setLoadingAction((prev) => ({
-    ...prev,
-    [productId]: action,
-  }));
-};
-
-
   return (
-    <div className={cn("flex flex-col gap-4 px-2", className)}>
-      {cart.map((item) => {
+   <div className={cn("flex flex-col gap-4 px-2", className)}>
+    {loadingAll ? (
+      <SkeletonCart />
+    ) : (
+      cart.map((item) => {
         const productInStore = products.find((p) => p.id === item.productId);
         const currentCount = item.count ?? 0;
-        // используем initialQuantity для сравнения
         const maxQuantity = productInStore?.initialQuantity ?? 0;
         const canIncrease = currentCount < maxQuantity;
-      const currentAction = loadingAction[item.productId];
+        const currentAction = loadingAction[item.productId];
+
+        // Флаг для disabled всей карточки при удалении
+        const isDisabled = currentAction === "delete";
+
         return (
           <div
             key={item.productId}
-            className="flex w-full border-t-1 py-4 items-center gap-4"
+            className={cn(
+              "flex w-full border-t-1 py-4 items-center gap-4",
+              isDisabled && "opacity-50 pointer-events-none select-none"
+            )}
           >
             <img src={item.selectedImg} className="w-[75px]" alt={item.name} />
             <div className="flex flex-col items-start gap-2">
@@ -57,9 +64,7 @@ const setItemAction = (productId: number, action: "delete" | "plus" | "minus" | 
                 {item.discount ? (
                   <>
                     <span className="pointer-events-none select-none font-bold text-[20px]">
-                      {Math.round(
-                        item.price * (1 - (item.discount ?? 0) / 100)
-                      )}{" "}
+                      {Math.round(item.price * (1 - (item.discount ?? 0) / 100))}{" "}
                       грн
                     </span>
                     <span className="pointer-events-none select-none font-light text-[15px] line-through">
@@ -73,40 +78,47 @@ const setItemAction = (productId: number, action: "delete" | "plus" | "minus" | 
                 )}
               </div>
               <div className="flex justify-between gap-6 items-center">
-                <button className="p-2 bg-[#F6F6F6] rounded-md">
+                <button
+                  className="p-2 bg-[#F6F6F6] rounded-md"
+                  disabled={isDisabled}
+                >
                   <Heart className="mx-auto" size={20} />
                 </button>
                 <button
                   onClick={async () => {
                     try {
-                      setItemAction(item.productId, 'delete');
+                      setItemAction(item.productId, "delete");
                       await deleteFromCart(item.productId);
                     } finally {
                       setItemAction(item.productId, null);
                     }
                   }}
                   className="p-2 bg-[#F6F6F6] rounded-md"
+                  disabled={isDisabled}
                 >
-                  {currentAction==='delete' ? (
+                  {currentAction === "delete" ? (
                     <Loader2 className="animate-spin w-5 h-5 mx-auto" />
                   ) : (
                     <Trash2 className="mx-auto" size={20} />
                   )}
                 </button>
-                <div className="border-1 border-[#750DC5] py-1 flex gap-2 justify-center items-center w-[110px]">
+                <div
+                  className="border-1 border-[#750DC5] py-1 flex gap-2 justify-center items-center w-[110px]"
+                  aria-disabled={isDisabled}
+                >
                   <button
-                    disabled={currentCount <= 1}
+                    disabled={currentCount <= 1 || isDisabled}
                     className="text-[#750DC5] disabled:opacity-50"
                     onClick={async () => {
                       try {
-                        setItemAction(item.productId, 'minus');
+                        setItemAction(item.productId, "minus");
                         await updateCartItem(item.productId, currentCount - 1);
                       } finally {
                         setItemAction(item.productId, null);
                       }
                     }}
                   >
-                    {currentAction === 'minus' ? (
+                    {currentAction === "minus" ? (
                       <Loader2 className="animate-spin w-5 h-5 mx-auto" />
                     ) : (
                       <Minus className="text-[#750DC5]" size={20} />
@@ -114,16 +126,13 @@ const setItemAction = (productId: number, action: "delete" | "plus" | "minus" | 
                   </button>
                   <span className="mx-4">{currentCount}</span>
                   <button
-                    disabled={!canIncrease}
+                    disabled={!canIncrease || isDisabled}
                     className="text-[#750DC5] text-[20px] disabled:opacity-50"
                     onClick={async () => {
                       try {
-                        setItemAction(item.productId, 'plus');
+                        setItemAction(item.productId, "plus");
                         if (canIncrease) {
-                          await updateCartItem(
-                            item.productId,
-                            currentCount + 1
-                          );
+                          await updateCartItem(item.productId, currentCount + 1);
                         } else {
                           toast.error("Нет в наличии");
                         }
@@ -132,7 +141,7 @@ const setItemAction = (productId: number, action: "delete" | "plus" | "minus" | 
                       }
                     }}
                   >
-                    {currentAction === 'plus' ? (
+                    {currentAction === "plus" ? (
                       <Loader2 className="animate-spin w-5 h-5 mx-auto" />
                     ) : (
                       <Plus />
@@ -143,7 +152,8 @@ const setItemAction = (productId: number, action: "delete" | "plus" | "minus" | 
             </div>
           </div>
         );
-      })}
-    </div>
+      })
+    )}
+  </div>
   );
 };

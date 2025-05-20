@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { Roboto } from "next/font/google";
 import "./globals.css";
-import { Header } from "@/shared/components";
-import { Toaster } from "react-hot-toast";
+
+import Providers from "@/shared/components/providers";
 
 const roboto = Roboto({
   style: ["normal"],
@@ -25,10 +25,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${roboto.className}  antialiased`}>
-        <Header />
-        <Toaster />
-
-        {children}
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

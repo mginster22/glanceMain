@@ -8,6 +8,7 @@ import toast from "react-hot-toast";
 import { useCartStore } from "@/store/useCart";
 import { useProductStore } from "@/store/useProduct";
 import { Loader2 } from "lucide-react";
+import { ProductInfoBlockSkeleton } from "./ui/sceleton-product-info-block";
 
 interface Props {
   productId: number;
@@ -24,16 +25,9 @@ export const ProductInfoBlock: React.FC<Props> = ({ productId, className }) => {
 
   console.log(singleProduct);
 
-  if (!singleProduct) {
-    return (
-      <Container
-        className={cn("mt-4 flex flex-col max-sm:pb-40 max-sm:px-4", className)}
-      >
-        <Title text="Карточка товара" size="md" />
-        <p className="text-xl text-red-500">Товар не найден</p>
-      </Container>
-    );
-  }
+if (!singleProduct) {
+  return <ProductInfoBlockSkeleton className={className} />;
+}
 
   const availableQuantity = singleProduct.quantity ?? 0;
 
@@ -42,7 +36,7 @@ export const ProductInfoBlock: React.FC<Props> = ({ productId, className }) => {
       className={cn("mt-4 flex flex-col max-sm:pb-40 max-sm:px-4", className)}
     >
       <Title text="Карточка товара" size="md" />
-      <div className="flex justify-between max-sm:flex-col">
+      <div className="flex justify-between max-sm:flex-col max-sm:items-center">
         <img
           src={singleProduct.img[0]}
           alt={`${singleProduct.name} ${singleProduct.brand} ${singleProduct.model}`}
