@@ -33,12 +33,12 @@ export const ProfilePopup: React.FC<Props> = ({
         )}
       >
         {session?.user ? (
-          <>
+          <div className="flex flex-col gap-2">
             <h2 className="text-lg font-semibold mb-2">Профиль</h2>
             <p className="text-sm text-gray-600">Вы вошли как {userName}</p>
             <p className="text-sm text-gray-600">{userEmail}</p>
             <LogoutButton />
-          </>
+          </div>
         ) : (
           <>
             <h2 className="text-lg font-semibold mb-2">Профиль</h2>

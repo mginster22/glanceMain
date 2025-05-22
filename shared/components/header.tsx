@@ -107,11 +107,21 @@ export const Header = () => {
             <div className="relative">
               <div
                 ref={iconRef}
-                className="flex flex-col items-center gap-1 cursor-pointer"
+                className="flex flex-col items-center gap-1 cursor-pointer w-[50px]"
                 onClick={() => setProfile((prev) => !prev)}
               >
-                <UserRound />
-                <span className="text-xs">{userName ?? "Профиль"}</span>
+                {session?.user?.image ? (
+                  <img
+                    src={session.user.image}
+                    alt="Аватар"
+                    className="w-6 h-6 rounded-full object-cover"
+                  />
+                ) : (
+                  <UserRound />
+                )}
+                <span className="text-xs text-center max-w-[80px] truncate">
+                  {userName ?? "Профиль"}
+                </span>
               </div>
               {profile && (
                 <ProfilePopup

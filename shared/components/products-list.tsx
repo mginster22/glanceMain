@@ -5,6 +5,8 @@ import { Container, Products, SearchFilters } from "@/shared/components";
 import { Filters, useFilters } from "@/shared/hooks/use-filters";
 import { ProductItem } from "@/types/products";
 import { useProductStore } from "@/store/useProduct";
+import { useSession } from "next-auth/react";
+import { useFavoriteStore } from "@/store/useFavorite";
 
 interface Props {
   initialProducts: ProductItem[];
@@ -15,6 +17,14 @@ interface Props {
   operMemory?: string[];
   className?: string;
 }
+
+type Favorite = {
+  id: number;
+  userId: number;
+  productId: number;
+  createdAt: string;
+  product: ProductItem;
+};
 
 export const ProductsList: React.FC<Props> = ({
   initialProducts,
@@ -27,8 +37,15 @@ export const ProductsList: React.FC<Props> = ({
   const { filters, handleCheckboxChange, handlePriceChange, filteredData } =
     useFilters(initialProducts, filterFn);
 
-    const {loading}=useProductStore(state=>state)
-   
+  const { data: status } = useSession();
+
+  const { loading } = useProductStore((state) => state);
+  const { fetchFavorite, favorites } = useFavoriteStore((state) => state);
+
+  React.useEffect(() => {
+    fetchFavorite();
+  }, [fetchFavorite]);
+  console.log(favorites);
   return (
     <div className="min-h-screen flex flex-col pb-20">
       <Container className="flex  gap-6 max-sm:flex-col max-sm:gap-0 ">
@@ -41,7 +58,11 @@ export const ProductsList: React.FC<Props> = ({
           onChange={handleCheckboxChange}
           onPriceChange={handlePriceChange}
         />
-        <Products products={filteredData} productMobileClassCart={true} isLoading={loading}/>
+        <Products
+          products={filteredData}
+          productMobileClassCart={true}
+          isLoading={loading}
+        />
       </Container>
     </div>
   );

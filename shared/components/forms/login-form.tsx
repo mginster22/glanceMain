@@ -12,6 +12,8 @@ export const LoginForm: React.FC<Props> = ({ onClose }) => {
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
 
+  
+
  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -55,6 +57,9 @@ export const LoginForm: React.FC<Props> = ({ onClose }) => {
           className="w-full border p-2 rounded mb-4"
           required
         />
+        <button onClick={() => signIn("github")} className="flex justify-center items-center ml-auto mr-auto pb-2">
+         войти через  <img src="/github.svg" className="w-6 h-6"/>
+        </button>
         <button
           type="submit"
           className="w-full bg-black text-white py-2 rounded"
