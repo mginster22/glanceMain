@@ -42,10 +42,7 @@ export const ProductsList: React.FC<Props> = ({
   const { loading } = useProductStore((state) => state);
   const { fetchFavorite, favorites } = useFavoriteStore((state) => state);
 
-  React.useEffect(() => {
-    fetchFavorite();
-  }, [fetchFavorite]);
-  console.log(favorites);
+ 
   return (
     <div className="min-h-screen flex flex-col pb-20">
       <Container className="flex  gap-6 max-sm:flex-col max-sm:gap-0 ">
