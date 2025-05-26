@@ -4,7 +4,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 
 // ======= Заглушка: функция получения userId из запроса (замени под свою аутентификацию) =======
-async function getUserId(req: Request): Promise<number | null> {
+export async function getUserId(req: Request): Promise<number | null> {
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.id) {
@@ -25,7 +25,7 @@ async function getUserId(req: Request): Promise<number | null> {
 }
 
 // ======= Функция слияния корзин: анонимной по token и пользовательской по userId =======
-async function mergeCarts(userId: number, token: string | undefined) {
+export async function mergeCarts(userId: number, token: string | undefined) {
   if (!token) return;
 
   const anonymousCart = await prisma.cart.findFirst({
