@@ -8,12 +8,15 @@ export const authOptions: AuthOptions = {
   session: {
     strategy: "jwt",
   },
+  jwt: {
+    maxAge: 60 * 60 * 24,
+  },
   providers: [
     GitHubProvider({
       clientId: process.env.GITHUB_CLIENT_ID!,
       clientSecret: process.env.GITHUB_CLIENT_SECRET!,
     }),
-  
+
     CredentialsProvider({
       name: "Credentials",
       credentials: {

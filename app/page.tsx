@@ -3,7 +3,7 @@ import React from "react";
 
 export default async function Home() {
   return (
-    <div className="mt-4 max-sm:pb-20">
+    <div className="mt-4 max-sm:pb-20 pb-4">
 
   
       <Banner />

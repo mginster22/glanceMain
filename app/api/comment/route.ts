@@ -68,6 +68,7 @@ export async function GET(req: NextRequest) {
           select: {
             name: true,
             image: true,
+            email:true
           },
         },
       },
@@ -80,7 +81,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ message: "Internal server error" }, { status: 500 });
   }
 }
-// app/api/comment/route.ts (или где у тебя обрабатываются запросы)
+// app/api/comment/route.ts 
 
 export async function DELETE(req: NextRequest) {
   const session = await getServerSession(authOptions);

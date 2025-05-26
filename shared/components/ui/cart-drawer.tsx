@@ -10,7 +10,7 @@ interface Props {
 }
 
 export const CartDrawer: React.FC<Props> = ({ className }) => {
-  const { active, closeCart, clearCart,loading } = useCartStore((state) => state);
+  const { active, closeCart,cart, clearCart,loading } = useCartStore((state) => state);
   const drawerRef = useRef<HTMLDivElement>(null);
 
     const [loadingAll, setLoadingAll] = React.useState(loading);
@@ -50,7 +50,7 @@ export const CartDrawer: React.FC<Props> = ({ className }) => {
       >
         <div className="flex items-center gap-10">
           <h2 className="text-xl font-bold mt-4 ml-5 cursor-pointer">Корзина</h2>
-          <h2
+          <button
             onClick={async () => {
               try {
                 setLoadingAll(true);
@@ -61,10 +61,11 @@ export const CartDrawer: React.FC<Props> = ({ className }) => {
                 console.log(error);
               }
             }}
-            className="text-xl font-bold mt-4 select-none  ml-5"
+            disabled={cart.length === 0}
+            className="text-xl font-bold mt-4 select-none cursor-pointer ml-5 disabled:opacity-20"
           >
             Очистить
-          </h2>
+          </button>
         </div>
         <Cart loadingAll={loadingAll}/>
       </div>

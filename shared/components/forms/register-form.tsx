@@ -10,10 +10,13 @@ export const RegisterForm: React.FC<Props> = ({ onClose }) => {
   const [name, setName] = useState("");
   const [email,setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading,setLoading]=useState(false)
+
 
  const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
   try {
+      setLoading(true);
     const res = await fetch('/api/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -24,6 +27,7 @@ export const RegisterForm: React.FC<Props> = ({ onClose }) => {
 
     if (!res.ok) {
       alert(data.error || 'Ошибка регистрации');
+        setLoading(false);
       return;
     }
 
@@ -41,7 +45,9 @@ export const RegisterForm: React.FC<Props> = ({ onClose }) => {
     }
   } catch (error) {
     alert('Ошибка сети или сервера');
-  }
+  } finally {
+      setLoading(false);
+    }
 };
 
 
@@ -63,6 +69,7 @@ export const RegisterForm: React.FC<Props> = ({ onClose }) => {
           onChange={(e) => setName(e.target.value)}
           className="w-full border p-2 rounded mb-2"
           required
+            disabled={loading}
         />
         <input
           type="text"
@@ -71,6 +78,7 @@ export const RegisterForm: React.FC<Props> = ({ onClose }) => {
           onChange={(e) => setEmail(e.target.value)}
           className="w-full border p-2 rounded mb-2"
           required
+            disabled={loading}
         />
         <input
           type="password"
@@ -79,17 +87,20 @@ export const RegisterForm: React.FC<Props> = ({ onClose }) => {
           onChange={(e) => setPassword(e.target.value)}
           className="w-full border p-2 rounded mb-4"
           required
+            disabled={loading}
         />
         <button
           type="submit"
-          className="w-full bg-black text-white py-2 rounded"
+           className="w-full bg-black text-white py-2 rounded disabled:opacity-50"
+          disabled={loading}
         >
-          Зарегистрироваться
+         {loading ? "Загрузка..." : "Зарегистрироваться"}
         </button>
         <button
           type="button"
           onClick={onClose}
           className="w-full mt-2 text-sm text-gray-500"
+            disabled={loading}
         >
           Отмена
         </button>

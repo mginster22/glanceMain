@@ -9,52 +9,24 @@ import { useCartStore } from "@/store/useCart";
 import { useProductStore } from "@/store/useProduct";
 import { Loader2 } from "lucide-react";
 import { ProductInfoBlockSkeleton } from "./ui/sceleton-product-info-block";
-import { useSession } from "next-auth/react";
-import { getColorByName } from "@/shared/components/libs";
+import { Comments } from "./comments";
 
 interface Props {
   productId: number;
   className?: string;
 }
 
-interface Comment {
-  id: number;
-  text: string;
-  user: {
-    name: string;
-    image: string;
-  };
-  createdAt: string;
-}
+
 
 export const ProductInfoBlock: React.FC<Props> = ({ productId, className }) => {
   const { addToCart, cart, loading } = useCartStore();
   const { singleProduct, fetchProductById } = useProductStore();
 
-  const [comments, setComments] = React.useState<Comment[]>([]);
-  const [value, setValue] = React.useState("");
-
-  const { data: session } = useSession();
+ 
 
   useEffect(() => {
     fetchProductById(productId);
   }, [productId, fetchProductById, cart]);
-
-  useEffect(() => {
-    const fetchComments = async () => {
-      try {
-        const response = await fetch(`/api/comment?productId=${productId}`);
-        const data = await response.json();
-        setComments(data);
-      } catch (error) {
-        console.error("Error fetching comments:", error);
-      }
-    };
-
-    fetchComments();
-  }, [productId]);
-
-  console.log(comments);
 
   if (!singleProduct) {
     return <ProductInfoBlockSkeleton className={className} />;
@@ -164,129 +136,7 @@ export const ProductInfoBlock: React.FC<Props> = ({ productId, className }) => {
               )}
             </div>
           </div>
-          <div className="w-[300px]">
-            <h3>Комментарии:</h3>
-            <div className="flex flex-col gap-2 mt-4 ">
-              {comments.map((comment, index) => {
-                const isAuthor = session?.user?.name === comment.user.name;
-                return (
-                  <div key={comment.id} className="flex flex-col gap-2">
-                    <div className="flex items-center gap-2">
-                      {comment.user.image ? (
-                        <img
-                          src={comment.user.image}
-                          className="w-[30px] h-[30px] rounded-full object-cover"
-                          alt={comment.user.name}
-                        />
-                      ) : (
-                        <div
-                          className="w-[30px] h-[30px] rounded-full flex items-center justify-center text-white text-xs font-bold"
-                          style={{
-                            backgroundColor: getColorByName(comment.user.name),
-                          }}
-                        >
-                          {comment.user.name.charAt(0).toUpperCase()}
-                        </div>
-                      )}
-                      <p
-                        title={comment.user.name}
-                        className="max-w-[120px] truncate cursor-default"
-                      >
-                        {comment.user.name}
-                      </p>
-                      <p className="text-[10px] text-green-500 ">
-                        {comment.createdAt}
-                      </p>
-                    </div>
-                    <p className="text-[14px]">{comment.text}</p>
-                    {isAuthor && (
-                      <button
-                        onClick={async () => {
-                          try {
-                            const res = await fetch("/api/comment", {
-                              method: "DELETE",
-                              headers: { "Content-Type": "application/json" },
-                              body: JSON.stringify({ commentId: comment.id }),
-                            });
-
-                            if (!res.ok) throw new Error("Ошибка удаления");
-
-                            // Удаляем из стейта
-                            setComments((prev) =>
-                              prev.filter((c) => c.id !== comment.id)
-                            );
-                            toast.success("Комментарий удален");
-                          } catch (err) {
-                            console.error(err);
-                            toast.error("Не удалось удалить комментарий");
-                          }
-                        }}
-                        className="text-red-500 text-sm"
-                      >
-                        Удалить
-                      </button>
-                    )}
-                  </div>
-                );
-              })}
-              <div className="mt-8 flex flex-col gap-2">
-                <span>Оставить комментарий:</span>
-                <textarea
-                  id="comment"
-                  name="comment"
-                  value={value}
-                  onChange={(e) => setValue(e.target.value)}
-                  placeholder="Напишите ваш комментарий..."
-                  className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                ></textarea>
-                <button
-                  type="submit"
-                  className="bg-blue-900 hover:bg-blue-600 text-white py-2 px-4 rounded-lg w-[150px] cursor-pointer"
-                  onClick={async () => {
-                    if (value.trim() === "") return;
-
-                    if (!session) {
-                      toast.error(
-                        "Вы должны войти в аккаунт, чтобы оставить комментарий"
-                      );
-                      return;
-                    }
-
-                    const newComment = {
-                      text: value,
-                      productId,
-                      user: {
-                        name: session.user?.name ?? "Гость",
-                        image: session.user?.image ?? "/default-avatar.png",
-                      },
-                    };
-
-                    try {
-                      const response = await fetch("/api/comment", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(newComment),
-                      });
-
-                      if (!response.ok)
-                        throw new Error("Ошибка при отправке комментария");
-
-                      const savedComment = await response.json();
-
-                      setComments([savedComment, ...comments]);
-                      setValue("");
-                      toast.success("Комментарий добавлен!");
-                    } catch (error) {
-                      console.error(error);
-                      toast.error("Ошибка при добавлении комментария");
-                    }
-                  }}
-                >
-                  Отправить
-                </button>
-              </div>
-            </div>
-          </div>
+          <Comments productId={singleProduct.id}/>
         </div>
       </div>
     </Container>
