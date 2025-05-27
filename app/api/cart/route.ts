@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
-
+import { v4 as uuidv4 } from "uuid";
 // ======= Заглушка: функция получения userId из запроса (замени под свою аутентификацию) =======
 export async function getUserId(req: Request): Promise<number | null> {
   const session = await getServerSession(authOptions);
@@ -154,7 +154,6 @@ export async function GET(req: NextRequest) {
   }
 }
 
-
 // ======= POST - Добавить товар в корзину =======
 export async function POST(req: NextRequest) {
   try {
@@ -162,13 +161,11 @@ export async function POST(req: NextRequest) {
     const { productId, count = 1 } = body;
 
     const userId = await getUserId(req);
-    const token = req.cookies.get("cartToken")?.value;
+    let token = req.cookies.get("cartToken")?.value;
 
-    // Определяем корзину
     let cart;
 
     if (userId) {
-      // Для авторизованного пользователя ищем или создаем корзину по userId
       cart = await prisma.cart.findFirst({
         where: { userId },
         include: { cartItems: true },
@@ -178,29 +175,35 @@ export async function POST(req: NextRequest) {
         cart = await prisma.cart.create({ data: { userId } });
       }
 
-      // Если есть анонимный токен — сливаем корзины и удаляем токен (фронт должен удалить cookie)
       if (token) {
         await mergeCarts(userId, token);
       }
     } else {
-      // Для анонимного пользователя используем token
+      // Для анонимного пользователя
       if (!token) {
-        return NextResponse.json({ error: "Не авторизован" }, { status: 401 });
-      }
+        // Генерируем новый уникальный токен и создаём корзину с ним
+        token = uuidv4();
 
-      cart = await prisma.cart.findFirst({ where: { token } });
-
-      if (!cart) {
         cart = await prisma.cart.create({
           data: {
             token,
             userId: null,
           },
         });
+      } else {
+        cart = await prisma.cart.findFirst({ where: { token } });
+        if (!cart) {
+          cart = await prisma.cart.create({
+            data: {
+              token,
+              userId: null,
+            },
+          });
+        }
       }
     }
 
-    // Проверяем наличие товара
+    // Проверка товара
     const product = await prisma.product.findUnique({
       where: { id: productId },
     });
@@ -214,7 +217,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Проверяем, есть ли товар в корзине
+    // Добавляем или обновляем товар в корзине
     const existingItem = await prisma.cartItem.findFirst({
       where: {
         cartId: cart.id,
@@ -237,7 +240,6 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Уменьшаем количество товара на складе
     await prisma.product.update({
       where: { id: productId },
       data: {
@@ -247,7 +249,20 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    return NextResponse.json({ success: true });
+    // Формируем ответ с установкой cookie, если мы создали новый token
+    const response = NextResponse.json({ success: true });
+
+    if (!req.cookies.get("cartToken")?.value && token) {
+      response.cookies.set("cartToken", token, {
+        httpOnly: false, // если нужно, можно сделать true, но тогда JS на клиенте не прочитает cookie
+        secure: process.env.NODE_ENV === "production",
+        maxAge: 60 * 60 * 24 * 7, // 7 дней
+        sameSite: "lax",
+        path: "/",
+      });
+    }
+
+    return response;
   } catch (error) {
     console.error("Ошибка при добавлении в корзину:", error);
     return NextResponse.json(
