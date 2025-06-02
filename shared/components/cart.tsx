@@ -33,7 +33,7 @@ export const Cart: React.FC<Props> = ({ className, loadingAll }) => {
   };
 
   return (
-   <div className={cn("flex flex-col gap-4 px-2", className)}>
+   <div className={cn("flex flex-col gap-4 px-2 max-h-[600px] overflow-y-auto", className)}>
     {loadingAll ? (
       <SkeletonCart />
     ) : (

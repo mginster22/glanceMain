@@ -20,6 +20,7 @@ model User {
   carts         Cart[]
   favorites     Favorite[]
   comments      Comment[]
+  orders        Order[]
 }
 
 model Comment {
@@ -49,6 +50,7 @@ model Product {
   cartItems      CartItem[]
   comments       Comment[]
   favoritedBy    Favorite[]
+  orderItems     OrderItem[]
 }
 
 model Characteristic {
@@ -108,6 +110,27 @@ model Account {
   user User @relation(fields: [userId], references: [id])
 
   @@unique([provider, providerAccountId])
+}
+
+model Order {
+  id         Int         @id @default(autoincrement())
+  userId     Int?
+  user       User?       @relation(fields: [userId], references: [id])
+  token      String? // Для гостей
+  total      Int
+  status     String      @default("pending") // pending, paid, shipped, etc.
+  createdAt  DateTime    @default(now())
+  orderItems OrderItem[]
+}
+
+model OrderItem {
+  id        Int     @id @default(autoincrement())
+  orderId   Int
+  order     Order   @relation(fields: [orderId], references: [id])
+  productId Int
+  product   Product @relation(fields: [productId], references: [id])
+  quantity  Int
+  price     Int // Цена на момент покупки
 }
 
 model Session {

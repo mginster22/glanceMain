@@ -9,30 +9,30 @@ datasource db {
 }
 
 model User {
-  id             Int        @id @default(autoincrement())
-  name           String
-  email          String     @unique
-  password       String?
-  image          String?
-  emailVerified  DateTime?  // 👈 для NextAuth
-  accounts       Account[]  // 👈 связи для авторизации через NextAuth
-  sessions       Session[]  // 👈 связи для сессий NextAuth
-  carts          Cart[]
-  favorites      Favorite[]
-   comments Comment[]
+  id            Int        @id @default(autoincrement())
+  name          String
+  email         String     @unique
+  password      String?
+  image         String?
+  emailVerified DateTime? // 👈 для NextAuth
+  accounts      Account[] // 👈 связи для авторизации через NextAuth
+  sessions      Session[] // 👈 связи для сессий NextAuth
+  carts         Cart[]
+  favorites     Favorite[]
+  comments      Comment[]
+  orders        Order[]
 }
-
 
 model Comment {
   id        Int      @id @default(autoincrement())
   text      String
   createdAt DateTime @default(now())
 
-  userId    Int
-  user      User     @relation(fields: [userId], references: [id])
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
 
   productId Int
-  product   Product  @relation(fields: [productId], references: [id])
+  product   Product @relation(fields: [productId], references: [id])
 }
 
 model Product {
@@ -48,8 +48,9 @@ model Product {
   newModel       Boolean         @default(false)
   characteristic Characteristic?
   cartItems      CartItem[]
-  comments Comment[]
+  comments       Comment[]
   favoritedBy    Favorite[]
+  orderItems OrderItem[]
 }
 
 model Characteristic {
@@ -66,7 +67,7 @@ model Characteristic {
 
 model Cart {
   id        Int        @id @default(autoincrement())
-  token     String?    
+  token     String?
   userId    Int?
   user      User?      @relation(fields: [userId], references: [id])
   cartItems CartItem[]
@@ -82,33 +83,54 @@ model CartItem {
 }
 
 model Favorite {
-  id        Int     @id @default(autoincrement())
+  id        Int      @id @default(autoincrement())
   userId    Int
-  user      User    @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
   productId Int
-  product   Product @relation(fields: [productId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id])
   createdAt DateTime @default(now())
 
   @@unique([userId, productId])
 }
 
 model Account {
-  id                 Int       @id @default(autoincrement())
-  userId             Int
-  type               String
-  provider           String
-  providerAccountId  String
-  refresh_token      String?
-  access_token       String?
-  expires_at         Int?
-  token_type         String?
-  scope              String?
-  id_token           String?
-  session_state      String?
+  id                Int     @id @default(autoincrement())
+  userId            Int
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
 
   user User @relation(fields: [userId], references: [id])
 
   @@unique([provider, providerAccountId])
+}
+
+model Order {
+  id         Int         @id @default(autoincrement())
+  userId     Int?
+  user       User?       @relation(fields: [userId], references: [id])
+  token      String? // Для гостей
+  total      Int
+  status     String      @default("pending") // pending, paid, shipped, etc.
+  createdAt  DateTime    @default(now())
+  orderItems OrderItem[]
+}
+
+model OrderItem {
+  id        Int     @id @default(autoincrement())
+  orderId   Int
+  order     Order   @relation(fields: [orderId], references: [id])
+  productId Int
+  product   Product @relation(fields: [productId], references: [id])
+  quantity  Int
+  price     Int // Цена на момент покупки
 }
 
 model Session {

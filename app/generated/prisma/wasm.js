@@ -196,6 +196,23 @@ exports.Prisma.AccountScalarFieldEnum = {
   session_state: 'session_state'
 };
 
+exports.Prisma.OrderScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  token: 'token',
+  total: 'total',
+  status: 'status',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.OrderItemScalarFieldEnum = {
+  id: 'id',
+  orderId: 'orderId',
+  productId: 'productId',
+  quantity: 'quantity',
+  price: 'price'
+};
+
 exports.Prisma.SessionScalarFieldEnum = {
   id: 'id',
   sessionToken: 'sessionToken',
@@ -234,6 +251,8 @@ exports.Prisma.ModelName = {
   CartItem: 'CartItem',
   Favorite: 'Favorite',
   Account: 'Account',
+  Order: 'Order',
+  OrderItem: 'OrderItem',
   Session: 'Session',
   VerificationToken: 'VerificationToken'
 };
